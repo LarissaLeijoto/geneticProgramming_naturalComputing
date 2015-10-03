@@ -6,12 +6,9 @@
 
 	#include "tree.h"
 	#include "util.h"
-	
+
 	
 	using namespace std;
-
-	#define TREE(x) ((struct Tree *)(x))
-	#define NODE(x) ((struct ExpNode *)(x))
 	
 	/**
 	 * @brief
@@ -19,13 +16,13 @@
 	ExpNode *create_ExpNode(unsigned l)
 	{
 		ExpNode *node = (struct ExpNode *)smalloc(sizeof(ExpNode));
-		NODE(node)->level = l;
-		NODE(node)->op = ' ';
-		NODE(node)->number = -1;
-		NODE(node)->kind = -1;
-		NODE(node)->id = -1;
-		NODE(node)->left = NULL;
-		NODE(node)->right = NULL;
+		node->level = l;
+		node->op = ' ';
+		node->number = -1;
+		node->kind = -1;
+		node->id = -1;
+		node->left = NULL;
+		node->right = NULL;
 		
 		return node;
 	}
@@ -36,8 +33,8 @@
 	Tree *create_tree()
 	{
 		Tree *tree = (Tree *)smalloc(sizeof(Tree));
-		TREE(tree)->root = NULL;
-		TREE(tree)->countNodes = 0;		
+		tree->root = NULL;
+		tree->countNodes = 0;		
 		
 		return tree;
 	}
@@ -48,26 +45,40 @@
 	void ExpNode::copy_node(ExpNode *node)
 	{
 		op = node->op;
+		//id = node->id;
 		kind = node->kind;
-		number = node->number;
-							
+		number = node->number;							
 	}
 	
 	/**
 	 * @brief
 	 */
+	void tree_destroy(ExpNode *node)
+	{
+		if(node!=NULL)
+		{
+			tree_destroy(node->left);
+			tree_destroy(node->right);
+			free(node);
+			node = NULL;
+		}
+
+	}
+	
+	/**
+	 * @brief  // Return the value of the expression represented by the tree to which node refers.  Node must be non-NULL.
+	 */
 	double getValue(ExpNode *node, double x)
 	{
 		double leftVal, rightVal;
-                // Return the value of the expression represented by
-                // the tree to which node refers.  Node must be non-NULL.
-             if ( NODE(node)->kind == NUMBER or NODE(node)->kind == VAR) 
+               
+             if ( node->kind == NUMBER or node->kind == VAR) 
              {
-                   // The value of a NUMBER node is the number it holds.
+                  /* The value of a NUMBER node is the number it holds.*/
                    double ter;
-                  if(NODE(node)->kind == NUMBER) 
+                  if(node->kind == NUMBER) 
                   {
-					 ter = NODE(node)->number;
+					 ter = node->number;
 					 
 				  }else
 				  {
@@ -77,16 +88,13 @@
                 return ter;
              }
              else 
-             {  // The kind must be OPERATOR.
-                     // Get the values of the operands and combine them
-                     //    using the operator.
+             { /*The kind must be OPERATOR, to get the values of the operands and combine them using the operator. */                
+                if(node->left != NULL)
+					leftVal = getValue(node->left, x);
+				if(node->right != NULL)
+					rightVal = getValue(node->right, x);
                 
-                if(NODE(node)->left != NULL)
-					leftVal = getValue(NODE(node)->left, x);
-				if(NODE(node)->right != NULL)
-					rightVal = getValue(NODE(node)->right, x);
-                
-                switch (NODE(node)->op) 
+                switch (node->op) 
                 {
                    case '+':  
 					   return leftVal + rightVal;
@@ -137,8 +145,8 @@
 			}
 			else 
 			{
-				TREE(tree)->countNodes+=1;
-				NODE(child)->id = TREE(tree)->countNodes;
+				tree->countNodes+=1;
+				child->id = tree->countNodes;
 				available.push_back(child);
 				
 			}
@@ -173,10 +181,10 @@
 			else 
 			{
 				available.push_back(child);
-				TREE(tree)->countNodes+1;
+				tree->countNodes+1;
 				
-				if(depth < NODE(child)->level)
-					depth = NODE(child)->level;
+				if(depth < child->level)
+					depth = child->level;
 			}
 		}
 		
@@ -242,46 +250,46 @@
 	/**
 	 * @brief
 	 */
-	 ExpNode *add_child(unsigned maxDepth, ExpNode *root)
+	 ExpNode *add_child(unsigned maxDepth,ExpNode *root)
 	{
 		ExpNode *child = NULL;
 		
-		if (NODE(root)->level + 1 > maxDepth) 
+		if (root->level + 1 > maxDepth) 
 		{
 			return child;	
 	
 		}
-		if(NODE(root)->left == NULL or NODE(root)->right == NULL)
+		if(root->left == NULL or root->right == NULL)
 		{
-			child =  create_ExpNode(NODE(root)->level + 1);
+			child =  create_ExpNode(root->level + 1);
 			
-			if (NODE(child)->level == maxDepth) 
+			if (child->level == maxDepth) 
 			{
 				// build leaf...
 				if(rand()%2)
 				{
-					NODE(child)->kind = NUMBER;
+					child->kind = NUMBER;
 					//NODE(child)->number = ((double)rand() / (double)(RAND_MAX));
-					NODE(child)->number = rand()%10;
+					child->number = rand()%10;
 				}
 				else
 				{
-					NODE(child)->kind = VAR;
-					NODE(child)->number = -1;
+					child->kind = VAR;
+					child->number = -1;
 				}
 			}
 			else 
 			{
 				// choose between op
-				NODE(child)->kind = OPERATOR;
-				NODE(child)->op = Operators[rand()%4];			
+				child->kind = OPERATOR;
+				child->op = Operators[rand()%4];			
 			}
 			
-			if (NODE(root)->left == NULL) 
-				NODE(root)->left = child;
+			if (root->left == NULL) 
+				root->left = child;
 							 
-			else if (NODE(root)->right == NULL) 
-				NODE(root)->right = child;
+			else if (root->right == NULL) 
+				root->right = child;
 			
 		}
 		return child;
@@ -292,23 +300,23 @@
 	 */
 	void display(ExpNode *list)
 	{
-		if (NODE(list) == NULL)
+		if (list == NULL)
 			return;
 
-		display(NODE(list)->left);
-		if(NODE(list)->kind == OPERATOR)
+		display(list->left);
+		if(list->kind == OPERATOR)
 		{
-			printf("%d\t%c\n",NODE(list)->id, NODE(list)->op);
+			printf("%c ", list->op);
 		}
-		else if(NODE(list)->kind == VAR)
+		else if(list->kind == VAR)
 		{
-			printf("%d\tX\n",NODE(list)->id);
+			printf("X ");
 		}
 		else
 		{
-			printf("%d\t%.2f\n",NODE(list)->id,NODE(list)->number);		
+			printf("%2f ",list->number);		
 		} 		
-		display(NODE(list)->right);
+		display(list->right);
 	}
 	
 	
@@ -326,7 +334,7 @@
 		{
 			offspring->left = create_ExpNode(offspring->level+1);
 			offspring->left->copy_node(parent->left);
-			nodeleft = copy_Individual(NODE(offspring)->left, parent->left, cutoff);		
+			nodeleft = copy_Individual(offspring->left, parent->left, cutoff);		
 	
 		}
 	
@@ -334,7 +342,7 @@
 		{
 			offspring->right = create_ExpNode(offspring->level+1);
 			offspring->right->copy_node(parent->right);
-			noderight = copy_Individual(NODE(offspring)->right, parent->right, cutoff);	
+			noderight = copy_Individual(offspring->right, parent->right, cutoff);	
 		}
 		
 		if(parent->left != NULL and parent->left->id == cutoff)
@@ -379,3 +387,56 @@
 		return NULL;
 	}
 	
+	/**
+	 * @brief
+	 */
+	ExpNode *copy_tree(ExpNode *root) 
+	{
+     ExpNode *new_root;
+     
+		 if(root!=NULL)
+		 {
+			 new_root = create_ExpNode(root->level);
+			 new_root->copy_node(root);
+			 new_root->left = copy_tree(root->left);
+			 new_root->right = copy_tree(root->right);
+		 }
+		 else
+			return NULL;
+			
+		 return new_root;
+	}
+
+	/**
+	 * @brief counting the number of nodes in a tree
+	 */
+	int count_Node(ExpNode *node)
+	{
+		int c = 1;
+	 
+		if (node == NULL)
+			return 0;
+		else
+		{
+			c += count_Node(node->left);
+			c += count_Node(node->right);
+			return c;
+		 }
+	}
+	
+	/**
+	 * @brief 
+	 */
+	int ExpNode::assignId(unsigned i) 
+	{
+		 id = i;
+		
+		if( left != NULL)
+			i = left->assignId(i+1);
+					
+		if(right != NULL)
+			i = right->assignId(i+1);
+
+		return i;
+        
+     } 

@@ -13,6 +13,7 @@
 	#include <limits.h>
 	#include <time.h>
 	#include <vector>
+	#include <fstream>      // std::ifstream
 
 	#include "database.h"
 	#include "util.h"
@@ -41,6 +42,7 @@
 
 			char ch;     /* Working character. */
 			FILE *wfile; /* Working file.      */
+			bool countColumns = true;
 			
 			/* Open working file. */
 			wfile = fopen(filename, "r");
@@ -50,9 +52,17 @@
 			/* Get number of points. */
 			while ((ch = getc(wfile)) != EOF)
 			{
+				if(ch == ' ' and countColumns)			
+					database.ncolunms++;
+				
 				if (ch == '\n')
+				{
 					database.npoints++;
+					countColumns = false;
+				}
 			}
+			
+			database.ncolunms = database.ncolunms - 1;
 			fclose(wfile);
 			
 		/* Invalid number of points. */
@@ -71,33 +81,40 @@
 	 * 
 	 * @todo Check for bad file format.
 	 */
-	void database_read(const char *filename)
+	void database_read(const char *filename)	
 	{
 		/* Sanity check. */
 		assert(filename != NULL);
 		
-		char *line; 	/* Working line.      */
-		FILE *wfile;	/* Working file.      */
-		char *token;    /* Working token.     */
-		unsigned i = 0; /*Loop index.		  */
+		char *line; 			/* Working line.      */
+		FILE *wfile;			/* Working file.      */
+		unsigned i = 0, j = 0;  /*Loop index.		  */
+		ifstream inFile;
+
 		
 		/* Allocate database. */
 		database.points = (double **)smalloc(database.npoints*sizeof(double *));
-		for (unsigned i = 0; i < database.npoints; i++)
-			database.points[i] = (double *)smalloc(2*sizeof(double));
-			
+		for (i = 0; i < database.npoints; i++)
+			database.points[i] = (double *)scalloc(database.ncolunms,sizeof(double));
+	
+
 		/* Open working file. */
-		wfile = fopen(filename, "r");
-			if (wfile == NULL)
+		inFile.open(filename, ios::in);
+			if (!inFile)
 				error ("cannot open input file");
 		
+		i = 0;
 		
-			while (!feof(wfile) & i < database.npoints)
+		for(i =0 ; i< database.npoints; i++)
+		{
+			for(j = 0; j < database.ncolunms; j++)
 			{
-				line = readline(wfile);	
-				sscanf(line,"%lf %lf",&database.points[i][0],&database.points[i][1]);
-				i++;		
+				inFile >> database.points[i][j];
 			}
+		}
+		
+		inFile.close();
+
 		
 	}
 
@@ -109,19 +126,11 @@
 	void database_destroy()
 	{	
 		unsigned i; /** Loop index.*/
-		clock_t start_time = 0;
-		start_time = clock();
 
 		for(i = 0; i < database.npoints;i++)
 			free(database.points[i]);
 		
-		free(database.points);
-		
-		#if(time_program>0)
-		double time_in_seconds = (clock() - start_time) / (double)CLOCKS_PER_SEC;
-		fprintf(stderr, "database destroy: %.2f\n",time_in_seconds );
-		#endif 
-		
+		free(database.points);	
 	}
 
 	/**
@@ -132,8 +141,15 @@
 
 	void print_base(void)
 	{
-		unsigned i; /* Loop index */
+		unsigned i, j; /* Loop index */
+		
 		for(i = 0; i < database.npoints;i++)
-			fprintf(stderr, "%lf, %lf\n", database.points[i][0], database.points[i][1]);
+		{
+			for( j = 0; j < database.ncolunms;j++)
+			{
+				fprintf(stderr, "%.2f ", database.points[i][j]);
+			}
+			fprintf(stderr, "\n");
+		}
 		
 	}

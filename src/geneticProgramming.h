@@ -25,8 +25,6 @@
 		/* Attributes. */
 		double m_rate; /* Mutation rate.    */
 		double c_rate; /* Crossover rate.   */
-		double e_rate; /* Elitism rate.     */
-		double r_rate; /* Replacement rate. */
 	};
 	
 	/*
@@ -37,7 +35,7 @@
 	/*
 	 * 
 	 */
-	Individual *Individual_random(Tree *tree, unsigned maxdepth);
+	Individual *Individual_random(Tree *tree);
 	
 	/*
 	 * Destroys an individual.
@@ -52,7 +50,7 @@
 	/*
 	 * Mutates a individual.
 	 */
-	void individual_mutation(Individual *individual);
+	Individual *individual_mutation(Individual *individual);
 
 	/*
 	* Selects organisms for mating using tournament.
@@ -92,12 +90,13 @@
 	/**
 	 *	Calculates mean and standard deviation for a population.
 	 */
-	void statistics(std::vector< Individual*> &population, double &best, unsigned &count, FILE *logStatistc);
+	void statistics(std::vector< Individual*> &population,  FILE *logStatistc);
 	
 	/**
 	 * Funtion used to make a copy of a Individual.
 	 */
 	Individual *copy_individual(Individual *individual);
+	
 	
 	
 	/* Global parameters. */

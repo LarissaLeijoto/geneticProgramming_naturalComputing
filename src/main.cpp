@@ -22,7 +22,7 @@
 	using namespace std;
 
 	
-	#define dbg  1
+	#define dbg  0
 	#define time_program 0
 
 	/* Program parameters. */
@@ -95,8 +95,23 @@
 		#endif
 		/* Read database. */
 		database_read(filename);
-	
 		
+		#if(dbg>0)
+		fprintf(stderr, "info: genetic programming! Ok\n");
+		#endif
+		symbolicRegression(popsize,ngen);
+		
+		//print_base();
+		
+		/* House keeping. */
+		database_destroy();
+		
+		return (EXIT_SUCCESS);
+	}
+	
+	
+	/*
+	 * 			
 		Individual *i1 = Individual_create();
 		Individual *i2 = Individual_create();
 		
@@ -105,35 +120,27 @@
 		i1->tree = create_tree();
 		i2->tree = create_tree();
 		filho->tree = create_tree();
-				
-		//Full(i1->tree, maxDepth);
-		//Full(i2->tree, maxDepth);
+			
+		Full(i1->tree, maxDepth);
+		Full(i2->tree, maxDepth);
 		
-		//display(i1->tree->root);
-		//fprintf(stderr,"\n");
-		/*
+		display(i1->tree->root);
+		fprintf(stderr,"\n");				
 		display(i2->tree->root);
+		
 		fprintf(stderr,"\n");
 		fprintf(stderr,"\n");
 		individual_crossover(filho, i1, i2);
 		
+		
+		fprintf(stderr,"FILHOOOOOOOOOOOOOOOOOOOOOOOOOO\n");
 		display(filho->tree->root);
-		*/
+	 */
 		
 		//fprintf(stderr, "\nRESULT: %.2f",getValue(tree->root, 2));
 		//fprintf(stderr, "\n");
 		
-		Tree *tree = create_tree();
-		Grow(tree, maxDepth);
+		//Tree *tree = create_tree();
+		//Grow(tree, maxDepth);
 		
-		display(tree->root);
-		
-		//symbolicRegression(popsize,ngen);
-		
-		//print_base();
-		
-		/* House keeping. */
-	
-		
-		return (EXIT_SUCCESS);
-	}
+		//display(tree->root);

@@ -12,22 +12,22 @@
 	#include <stdlib.h>     /* srand, rand */
 	#include <time.h>       /* time */
 
-
 	const char Operators[4] = {'+','-','*','/'};
 
-	const int NUMBER = 0,    // Values representing two kinds of nodes.
+	/* Values representing two kinds of nodes. */
+	const int NUMBER = 0,    
               OPERATOR = 1,
               VAR = 2;
      
 	struct Tree
 	{
 		struct ExpNode *root;
-		unsigned countNodes;
+		unsigned countNodes;			    	  	   
 	};
  
+	/* A node in an expression tree.*/
 	struct ExpNode 
-	{  // A node in an expression tree.
-                                     
+	{                                      
             int kind;       		 /* Which type of node is this? (Value is NUMBER or OPERATOR.).*/
             unsigned level;  	     /* Node's Depth. */
             double number;   		 /* The value in a node of type NUMBER. */
@@ -36,15 +36,26 @@
             struct ExpNode *right;   /*Pointer to subtrees. */   
             unsigned id; 			 /* Node's id to facilitate to choose a node. */
             
-		 /*
+		/*
+		 * 
+		 */ 
+		void var_leaf();
+		/*
 		 * 
 		 */
-		 
-		void var_leaf();
-		void copy_node(struct ExpNode*);
-          
+		void copy_node(struct ExpNode*);   
+		/*
+		 * 
+		 */
+		int assignId(unsigned);	 
+		
     };
     
+    
+    /**
+     * 
+     */    
+    void tree_destroy(ExpNode *node);
       
     /**
      * 
@@ -76,7 +87,6 @@
      */
 	 ExpNode *add_child(unsigned maxDepth, ExpNode *node);
 	
-		
 	/**
      * 
      */
@@ -91,5 +101,16 @@
 	 * 
 	 */	
 	ExpNode *Find_cutoff( ExpNode *offspring, int cutoff);
+	
+	/**
+	 * 
+	 */	
+	ExpNode *copy_tree(ExpNode *root);
+	
+	/**
+	 * 
+	 */
+	int count_Node(ExpNode *node);
+
 
 	#endif /* TREE_H_ */
