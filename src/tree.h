@@ -9,8 +9,8 @@
 
 	#include <vector>
 	#include <string>
-	#include <stdlib.h>     /* srand, rand */
-	#include <time.h>       /* time */
+	#include <stdlib.h>  
+	#include <time.h>      
 
 	const char Operators[4] = {'+','-','*','/'};
 
@@ -18,7 +18,8 @@
 	const int NUMBER = 0,    
               OPERATOR = 1,
               VAR = 2;
-     
+    
+    /* Tree that belongs to an individual.*/
 	struct Tree
 	{
 		struct ExpNode *root;
@@ -49,8 +50,7 @@
 		 */
 		int assignId(unsigned);	 
 		
-    };
-    
+    };    
     
     /**
      * 
@@ -85,7 +85,7 @@
 	/**
      * 
      */
-	 ExpNode *add_child(unsigned maxDepth, ExpNode *node);
+	 ExpNode *add_child(unsigned maxDepth, ExpNode *node, int &countVariables);
 	
 	/**
      * 
@@ -106,11 +106,5 @@
 	 * 
 	 */	
 	ExpNode *copy_tree(ExpNode *root);
-	
-	/**
-	 * 
-	 */
-	int count_Node(ExpNode *node);
-
 
 	#endif /* TREE_H_ */

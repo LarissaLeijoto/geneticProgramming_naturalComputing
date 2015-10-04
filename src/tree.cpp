@@ -6,6 +6,7 @@
 
 	#include "tree.h"
 	#include "util.h"
+	#include "database.h"
 
 	
 	using namespace std;
@@ -18,7 +19,7 @@
 		ExpNode *node = (struct ExpNode *)smalloc(sizeof(ExpNode));
 		node->level = l;
 		node->op = ' ';
-		node->number = -1;
+		node->number = rand()/ (double)RAND_MAX;
 		node->kind = -1;
 		node->id = -1;
 		node->left = NULL;
@@ -45,7 +46,7 @@
 	void ExpNode::copy_node(ExpNode *node)
 	{
 		op = node->op;
-		//id = node->id;
+		id = node->id;
 		kind = node->kind;
 		number = node->number;							
 	}
@@ -64,54 +65,106 @@
 		}
 
 	}
+	/**
+	 * @brief
+	 */
+	 ExpNode *add_child(unsigned maxDepth,ExpNode *root, int &countVariables)
+	{
+		ExpNode *child = NULL;
+		
+		if (root->level + 1 > maxDepth) 
+		{
+			return child;	
+	
+		}
+		if(root->left == NULL or root->right == NULL)
+		{
+			child =  create_ExpNode(root->level + 1);
+			
+			if (child->level == maxDepth) 
+			{
+				/* Choose at least one variable*/
+				if(countVariables > 0)
+				{
+					child->kind = VAR;
+					child->number = rand()/ (double)RAND_MAX;
+					countVariables--;
+				}
+				else if(rand()%2 == 0 and countVariables == 0)
+				{
+					child->kind = VAR;
+					child->number = rand()/ (double)RAND_MAX;
+				}else
+				{			
+					child->kind = NUMBER;
+				}
+			}
+			else 
+			{
+				// choose between op
+				child->kind = OPERATOR;
+				child->op = Operators[rand()%4];			
+			}
+			
+			if (root->left == NULL) 
+				root->left = child;
+							 
+			else if (root->right == NULL) 
+				root->right = child;
+			
+		}
+		return child;
+	}
+	
 	
 	/**
-	 * @brief  // Return the value of the expression represented by the tree to which node refers.  Node must be non-NULL.
+	 * @brief  Return the value of the expression represented by the tree to which node refers.  Node must be non-NULL.
 	 */
 	double getValue(ExpNode *node, double x)
-	{
-		double leftVal, rightVal;
-               
-             if ( node->kind == NUMBER or node->kind == VAR) 
+	{		
+             if (node->left == NULL and node->right == NULL)
              {
-                  /* The value of a NUMBER node is the number it holds.*/
-                   double ter;
-                  if(node->kind == NUMBER) 
-                  {
-					 ter = node->number;
-					 
-				  }else
-				  {
-					 ter = x;
-				  }
-                   
-                return ter;
+				 double terminal = node->number;
+				/* The value of a NUMBER node is the number it holds.*/
+				            
+				if(node->kind == VAR)
+					terminal = x;
+		
+                return terminal;
              }
              else 
-             { /*The kind must be OPERATOR, to get the values of the operands and combine them using the operator. */                
+             { /*The kind must be OPERATOR, to get the values of the operands and combine them using the operator. */ 
+				double result = 0.0;               
+                double leftVal, rightVal;
+                
                 if(node->left != NULL)
 					leftVal = getValue(node->left, x);
+								
 				if(node->right != NULL)
 					rightVal = getValue(node->right, x);
                 
                 switch (node->op) 
                 {
-                   case '+':  
-					   return leftVal + rightVal;
-					   break;
-                   case '-': 
-					   return leftVal - rightVal;
-					   break;
-                   case '*':  
-					   return leftVal * rightVal;
-					   break;
-                   case '/': 
-					   if(rightVal == 0)
-							return 1;
-						else					   
-							return leftVal / rightVal;
-					   break;
+					case '+':  
+						result = leftVal + rightVal;
+						break;
+					case '-': 
+						result = leftVal - rightVal;
+						break;
+					case '*':  
+						result = leftVal * rightVal;
+						break;
+					case '/': 
+						if(rightVal == 0.0)
+							result = leftVal;
+						else
+							result = leftVal/rightVal;
+						break;
+					default:
+						result = leftVal + rightVal; 
+						break;
                 }
+                return result;
              }
     } 
 	
@@ -121,10 +174,11 @@
 	void Full(Tree *tree, unsigned maxDepth)
 	{
 		ExpNode *child; 
+		int countVariables = database.ncolunms -1;
 		
 		tree->root = create_ExpNode(0);
 		tree->root->kind = OPERATOR;
-		tree->root->op = Operators[rand()% 4];
+		tree->root->op = Operators[rand()%4];
 		tree->countNodes+=1;
 		tree->root->id =tree->countNodes;
 		
@@ -137,7 +191,7 @@
 			unsigned pos = rand() % available.size();
 			ExpNode *cur = available[pos];
 
-			child = add_child(maxDepth, cur);
+			child = add_child(maxDepth, cur, countVariables);
 			
 			if (child == NULL) 
 			{
@@ -159,8 +213,10 @@
 	void Grow( Tree *tree, unsigned maxDepth)
 	{
 		unsigned depth = 0;
+		int countVariables = database.ncolunms -1;
 		ExpNode *child; 
-		
+
+
 		tree->root = create_ExpNode(0);
 		tree->root->kind = OPERATOR;
 		tree->root->op = Operators[rand()% 4];
@@ -174,7 +230,7 @@
 			unsigned pos = rand() % available.size();
 			ExpNode *cur = available[pos];
 
-			child = add_child(maxDepth, cur);
+			child = add_child(maxDepth, cur, countVariables);
 			
 			if (child == NULL) 
 				available.erase(available.begin() + pos);
@@ -201,15 +257,14 @@
 		
 		if (left == NULL && right == NULL)
 		{
-			if(rand()%2)
+			if(rand()%2 == 0)
 			{
 				kind = NUMBER;
-				number = rand()% 10;
 			}
 			else
 			{
 				kind = VAR;
-				number = -1;
+				number = rand()/(double)RAND_MAX ;
 			}
 			
 		}
@@ -247,53 +302,6 @@
 			
 	}
 	
-	/**
-	 * @brief
-	 */
-	 ExpNode *add_child(unsigned maxDepth,ExpNode *root)
-	{
-		ExpNode *child = NULL;
-		
-		if (root->level + 1 > maxDepth) 
-		{
-			return child;	
-	
-		}
-		if(root->left == NULL or root->right == NULL)
-		{
-			child =  create_ExpNode(root->level + 1);
-			
-			if (child->level == maxDepth) 
-			{
-				// build leaf...
-				if(rand()%2)
-				{
-					child->kind = NUMBER;
-					//NODE(child)->number = ((double)rand() / (double)(RAND_MAX));
-					child->number = rand()%10;
-				}
-				else
-				{
-					child->kind = VAR;
-					child->number = -1;
-				}
-			}
-			else 
-			{
-				// choose between op
-				child->kind = OPERATOR;
-				child->op = Operators[rand()%4];			
-			}
-			
-			if (root->left == NULL) 
-				root->left = child;
-							 
-			else if (root->right == NULL) 
-				root->right = child;
-			
-		}
-		return child;
-	}
 	
 	 /**
 	 * @brief To display the elements in a tree using inorder
@@ -303,19 +311,21 @@
 		if (list == NULL)
 			return;
 
-		display(list->left);
 		if(list->kind == OPERATOR)
 		{
-			printf("%c ", list->op);
+			fprintf(stderr,"%c ", list->op);
 		}
 		else if(list->kind == VAR)
 		{
-			printf("X ");
+			fprintf(stderr," X");
+
+			//fprintf(stderr,"%d  %.2f\n ",list->id,list->number);
 		}
 		else
 		{
-			printf("%2f ",list->number);		
-		} 		
+			fprintf(stderr,"%.2f ",list->number);		
+		} 	
+		display(list->left);	
 		display(list->right);
 	}
 	
@@ -405,23 +415,6 @@
 			return NULL;
 			
 		 return new_root;
-	}
-
-	/**
-	 * @brief counting the number of nodes in a tree
-	 */
-	int count_Node(ExpNode *node)
-	{
-		int c = 1;
-	 
-		if (node == NULL)
-			return 0;
-		else
-		{
-			c += count_Node(node->left);
-			c += count_Node(node->right);
-			return c;
-		 }
 	}
 	
 	/**

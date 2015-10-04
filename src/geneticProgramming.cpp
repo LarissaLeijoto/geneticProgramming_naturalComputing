@@ -4,12 +4,12 @@
 	* 	This file is part of genetic programming developed in a first project of natural computing.
 	*/
 
-	#include <cmath>        // std::abs
 	#include <stdlib.h>
 	#include <string.h>
 	#include <omp.h>
 	#include <time.h>
 	#include <cmath>
+	#include <math.h>       /* isnan, sqrt */
 	#include <assert.h>
 	#include <string>
 	#include <vector>
@@ -27,7 +27,7 @@
 	
 	#define dbg 0
 	#define time_program 0
-	#define time_ga 0
+	#define time_ga 1
 	#define saveFile 0
 
 
@@ -57,9 +57,6 @@
 	 */
 	Individual *Individual_create()
 	{
-		#if(dbg>0)
-		fprintf(stderr, "info: Individual create\n");
-		#endif
 		Individual * individual = (Individual *)smalloc(sizeof(Individual));
 		individual->fitness = 0;
 		
@@ -73,10 +70,6 @@
 	 */
 	Individual *Individual_random(unsigned maxdepth, unsigned method)
 	{	
-		#if(dbg>0)
-		fprintf(stderr, "info: Individual random\n");
-		#endif
-		
 		Individual *individual = Individual_create();
 		individual->tree = create_tree();
 		
@@ -84,36 +77,29 @@
 			Full(individual->tree, maxdepth);
 		else
 			Grow(individual->tree, maxdepth);
-		
 
-		
 		 return individual;		
 	}
 	
 	/**
 	 * @brief Destroys a Individual.
+	 * 
+	 * @param Individual that memory will be free.
 	 */
 	void individual_destroy(Individual *individual)
 	{
-		#if(dbg>0)
-		fprintf(stderr, "info: Individual destroy\n");
-		#endif
-		
 		tree_destroy(individual->tree->root);
 		free(individual->tree);
-		free(individual);
-		
+		free(individual);	
 	}
 	
 	/**
-	 * @brief Destroys a Individual.
+	 * @brief Make a copy of a Individual.
+	 * 
+	 * @param Individual that will be copy
 	 */
 	Individual *copy_individual(Individual *individual)
 	{
-		#if(dbg>0)
-		fprintf(stderr, "info: Individual copy\n");
-		#endif
-		
 		Individual *newIndividual = Individual_create();
 		
 		newIndividual->tree = create_tree();
@@ -127,15 +113,13 @@
 	/**
 	 * @brief Replaces old population for new population applying elitism and random kill.
 	 */
-	void replacement(genome *g, vector<Individual*> &population, vector<Individual*> &newpopulation)
+	void replacement(vector<Individual*> &population, vector<Individual*> &newpopulation)
 	{
-		#if(dbg>0)
-		fprintf(stderr, "info: repalcement\n");
-		#endif
-		
 		/* Sanity check */
 		assert(!population.empty());
 		assert(!newpopulation.empty());
+		
+		vector<Individual*> nextpopulation;
 			
 		unsigned i = 0;		 /* Loop index.					 */
 		unsigned nelite = 1; /* Number of elite individuals.  */
@@ -146,38 +130,43 @@
 		
 		/* Insert elite organisms.*/
 		for(i = 0; i < nelite; i++)
+			nextpopulation.push_back(copy_individual(population[i]));
+
+		/* Insert the individuals that still lack in the population*/
+		while (!newpopulation.empty() and newpopulation.size() < popsize)
 		{
-			if(newpopulation.size() == popsize)
-				newpopulation.push_back(copy_individual(population[i]));
-			else if(newpopulation.size() < popsize)
-				newpopulation.push_back(copy_individual(population[i]));		
+			nextpopulation.push_back(copy_individual(newpopulation.back()));
+			individual_destroy(newpopulation.back());
+			newpopulation.pop_back();
 		}
 		
-		/* Insert the individuals that still lack in the population*/
-		if(newpopulation.size() < popsize)
-		{
-			std::random_shuffle(population.begin(), population.end());
-			for( i = newpopulation.size(); i < popsize; i++)
-			{
-				newpopulation.push_back(copy_individual(population.back()));
-				individual_destroy(population.back());
-				population.pop_back();
-			}
-		}
+		std::random_shuffle(population.begin(), population.end());
+		
+		for(i = nextpopulation.size(); i < popsize; i++)
+			nextpopulation.push_back(copy_individual(population.back()));
+	
+				
+		/* Discard remaining new organisms. */
+		for(i = 0 ; i < newpopulation.size(); i++)
+			individual_destroy(newpopulation[i]);
+		if(!newpopulation.empty())
+			newpopulation.resize(0);
 
 		/* Discard all the old organisms. */
 		for(i = 0 ; i < population.size(); i++)
 			individual_destroy(population[i]);
+		if(!population.empty())
 		population.resize(0);
-		
+
 		/* Swap the old population for the new */
-		for(i = 0; i < newpopulation.size(); i++)
-			population.push_back(copy_individual(newpopulation[i]));
+		for(i = 0; i < nextpopulation.size(); i++)
+			population.push_back(copy_individual(nextpopulation[i]));
 			
-		/* Discard remaining new organisms. */
-		for(i = 0 ; i < newpopulation.size(); i++)
-			individual_destroy(newpopulation[i]);
-		newpopulation.resize(0);
+		/* Discard organisms. */
+		for(i = 0 ; i < nextpopulation.size(); i++)
+			individual_destroy(nextpopulation[i]);
+		if(!nextpopulation.empty())
+			nextpopulation.resize(0);
 	}
 
 	/**
@@ -185,10 +174,6 @@
 	 */
 	 void selection(vector<Individual *> &parents, vector< Individual *> &pop, unsigned tournament)
 	{
-		#if(dbg>0)
-		fprintf(stderr, "info: selection\n");
-		#endif
-		
 		/* Sanity check */
 		assert(!pop.empty());
 		
@@ -221,10 +206,6 @@
 	 */
 	 void reproduction(genome *g, vector<Individual*> &newpop, vector<Individual *> &parents)
 	{
-		#if(dbg>0)
-		fprintf(stderr, "info: reproduction\n");
-		#endif
-		
 		/* Sanity check */
 		assert(!parents.empty());		
 		
@@ -232,8 +213,6 @@
 		Individual *mom;   		 	  /* Mother.       	*/
 		Individual *dad;   		  	  /* Father.       	*/
 		Individual *offspring;        /* Offspring.		*/	
-		//Individual *mutated;		  /* Anomaly.		*/
-		
 			
 		std::random_shuffle(parents.begin(), parents.end());
 
@@ -273,10 +252,6 @@
 	 */
 	void individual_crossover(Individual *offspring, Individual *mom, Individual *dad)
 	{	
-		#if(dbg>0)
-		fprintf(stderr, "info: Individual crossover\n");
-		#endif
-		
 		mom->tree->countNodes = mom->tree->root->assignId(1);
 		dad->tree->countNodes = dad->tree->root->assignId(1);
 		
@@ -326,10 +301,6 @@
 	 */
 	Individual *individual_mutation(Individual *individual)
 	{	
-		#if(dbg>0)
-		fprintf(stderr, "info: Individual mutation\n");
-		#endif
-		
 		Individual *randomIndividual;
 		Individual *newIndividual = Individual_create();
 			
@@ -354,17 +325,13 @@
 	 */
 	void individual_evaluate(vector<Individual*> &population)
 	{  
-		#if(dbg>0)
-		fprintf(stderr, "info: Individual evaluate\n");
-		#endif
 		for(unsigned i = 0; i < population.size(); i++)
 		{
 			double residual = 0;  
 			
 			for(unsigned j = 0; j < database.npoints; j++)
-				residual += abs((getValue(population[i]->tree->root, database.points[j][0])- database.points[j][1]));  
-			  
-			
+				residual += abs((getValue(population[i]->tree->root, database.points[j][0])- database.points[j][1]));  		
+	
 			population[i]->fitness = residual;
 		}
 	}
@@ -377,7 +344,7 @@
 	*/
 	struct genome problem = 
 	{
-			0.05,           /* Mutation rate.    */
+			0.01,           /* Mutation rate.    */
 			0.90,           /* Crossover rate.   */
 	};
 
@@ -400,48 +367,38 @@
 		double stddev = 0;	/* Standart desviation of population's fitness.      */
 		unsigned i;			/* Loop index.										 */
 		
-
 		std::sort(population.begin(),population.end(),ordenation);
-		
-		
-		//#if(saveFile>0)
+
 		fprintf(logStatistic,"%.2f;",population[0]->fitness); /* Máximo */
 		fprintf(logStatistic,"%.2f;",population[popsize-1]->fitness); /* Minimo*/
-		//#endif
 		
-		for(i = 0; i < popsize; i++)
+		for(i = 0; i < population.size(); i++)
 			sum += population[i]->fitness;
 			
 		mean = sum/popsize;
 		
-		//#if(saveFile>0)
-		fprintf(logStatistic,"%f;",mean);
-		//#endif
+		fprintf(logStatistic,"%2.f;",mean);
 		
 		sum = 0;
 		
-		for(i = 0; i < popsize; i++)
+		for(i = 0; i < population.size(); i++)
 			sum += pow((population[i]->fitness - mean),2);
 			
 		stddev = sum/popsize;		
 		
-		//#if(saveFile>0)
-		fprintf(logStatistic,"%f",stddev);
+		fprintf(logStatistic,"%2.f",stddev);
 		fprintf(logStatistic,"\n");
-		//#endif
 			
 	}
 
 	/*============================================================================*
 	 *                              genetic Programming                           *
 	 *============================================================================*/
-
 	 /**
 	 * @brief
 	 */
 	void geneticProgramming(genome *g, unsigned popsize, unsigned ngen)
 	{
-		
 		#if(dbg>0)
 		fprintf(stderr,"popsize: %d\n", popsize);
 		fprintf(stderr,"ngen: %d\n", ngen);
@@ -450,7 +407,6 @@
 		#endif	
 		
 		FILE *logStatistic;
-		FILE *logIndividuals;
 		FILE *logBests;
 
 		vector<Individual*> population;					/* Current population.    						 */
@@ -468,61 +424,44 @@
 		double time_in_seconds_replacement =0;
 		
 		logStatistic = fopen("statistic.txt", "w");
-		logIndividuals = fopen("individuals.txt", "w");
 		logBests = fopen("bests.txt","w");
 		
-		//fprintf(logStatistic,"Min;Max;Mean;Stdv"); /* Header */
+		/* Header of file*/
+		fprintf(logStatistic,"Min;Max;Mean;Stdv\n"); 
 		
 		SANITY_CHECK();
 
 		//for(unsigned stat = 0; stat < 1;stat++)
 		//{
-			
 			/* Build initial population. */
 			for(unsigned i = 0; i < popsize;i++ )
 				population.push_back(Individual_random(maxDepth,1));
 						
-			
 			for(unsigned i = 0; i < popsize; i++)
 			{
-
 				fprintf(stderr, "generation: %d\n", i);
 
-				#if(dbg>0)
-				fprintf(stderr, "info: individual evaluate! Ok\n");
-				#endif
 				/**Evaluate the new population*/
 				clock_t start_time_evaluation = clock();
 				individual_evaluate(population);
 				time_in_seconds_evaluation += (clock() - start_time_evaluation) / (double)CLOCKS_PER_SEC;
-				
-				
-			
+
 				/* Print population statistics.*/
-				//statistics(population, logStatistic);
-					
-				#if(dbg>0)
-				fprintf(stderr, "info: selection! Ok\n");
-				#endif
+				statistics(population, logStatistic);
+				
 				/* Select individuals for reproduction.*/
 				clock_t start_time_selection = clock();
 				selection(parents, population, 2);					
 				time_in_seconds_selection += (clock() - start_time_selection) / (double)CLOCKS_PER_SEC;
 				
-				#if(dbg>0)
-				fprintf(stderr, "info: reproduction! Ok\n");
-				#endif
 				/* Crossover and mutation.*/
 				clock_t start_time_reproduction = clock();
 				reproduction(g, newpopulation, parents);
 				time_in_seconds_reproduction += (clock() - start_time_reproduction) / (double)CLOCKS_PER_SEC;
-				
-				#if(dbg>0)
-				fprintf(stderr, "info: replacement! Ok\n");
-				#endif
+							
 				/* Replaces the old population by the new.*/
 				clock_t start_time_replacement = clock();
-				replacement(g, population, newpopulation);
+				replacement(population, newpopulation);
 				time_in_seconds_replacement += (clock() - start_time_replacement) / (double)CLOCKS_PER_SEC;
 			}	
 			
@@ -530,27 +469,9 @@
 			for(unsigned w = 0; w < population.size(); w++)
 				individual_destroy(population[w]);
 			population.resize(0);
-			
-			//for(unsigned w = 0; w < parents.size(); w++)
-				//individual_destroy(parents[w]);
-			//parents.resize(0);
-			
-			//for(unsigned w = 0; w < newpopulation.size(); w++)
-				//individual_destroy(newpopulation[w]);
-			//newpopulation.resize(0);	
-			
-			//for(unsigned i = 0; i < popsize;i++ )
-				//{
-					//fprintf(stderr,"%.2f\n", population[i]->fitness);
-					//fprintf(stderr,"\n\n");
-				//}
-			
+
 		
 		//}
-		
-		fclose(logStatistic);
-		fclose(logIndividuals);
-		fclose(logBests);
 		
 		#if(time_ga>0)
 		fprintf(logBests, "Evaluation: %.2f\n",time_in_seconds_evaluation);
@@ -558,5 +479,7 @@
 		fprintf(logBests, "Reproduction: %.2f\n",time_in_seconds_reproduction);
 		fprintf(logBests, "Replacement: %.2f\n",time_in_seconds_replacement);
 		#endif
-
+		
+		fclose(logStatistic);
+		fclose(logBests);
 	}

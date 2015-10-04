@@ -65,7 +65,7 @@
 	/*
 	* Replaces old population for new population applying elitism and random kill.
 	*/
-	void replacement(genome *g, std::vector<Individual*> &population,  std::vector< Individual*> &newpopulation);
+	void replacement(std::vector<Individual*> &population, std::vector< Individual*> &newpopulation);
 	
 	/*
 	 * Genetic Programming.
