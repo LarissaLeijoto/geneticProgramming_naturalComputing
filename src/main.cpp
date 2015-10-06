@@ -26,7 +26,7 @@
 	#define time_program 0
 
 	/* Program parameters. */
-	static const char *filename = NULL;  /* Name of input files.              */
+	static const char *filename = NULL;         /* Name of input files.              */
 	unsigned popsize = 0;		         /* Population size.                  */
 	unsigned ngen = 0;          		 /* Number of generations.            */
 	unsigned maxDepth = 0;				 /* Initial depth of each individual. */
@@ -50,7 +50,7 @@
 	/**
 	 * @brief Reads command line arguments.
 	 * 
-	 * @details Reads and parses command line arguments pointed to by @p argv.
+	 * @details Reads and parses command line arguments pointed to by argv.
 	 * 
 	 * @todo Read and parse command line arguments.
 	 */
@@ -78,12 +78,11 @@
 	
 	int main(int argc, char **argv)
 	{
-		
 		readargs(argc, argv);
 		
 		/* Initialization. */
-		srand( (unsigned)time(NULL) );
-		
+		//srand( (unsigned)time(NULL) );
+		srand(0);
 		/* Parse database. */
 		#if(dbg>0)
 		fprintf(stderr, "parsing database... Ok\n");
@@ -99,6 +98,7 @@
 		#if(dbg>0)
 		fprintf(stderr, "info: genetic programming! Ok\n");
 		#endif
+		/* Symbolic Regression. */
 		symbolicRegression(popsize,ngen);
 		
 		//print_base();
@@ -108,39 +108,3 @@
 		
 		return (EXIT_SUCCESS);
 	}
-	
-	
-	/*
-	 * 			
-		Individual *i1 = Individual_create();
-		Individual *i2 = Individual_create();
-		
-		Individual *filho = Individual_create();
-		
-		i1->tree = create_tree();
-		i2->tree = create_tree();
-		filho->tree = create_tree();
-			
-		Full(i1->tree, maxDepth);
-		Full(i2->tree, maxDepth);
-		
-		display(i1->tree->root);
-		fprintf(stderr,"\n");				
-		display(i2->tree->root);
-		
-		fprintf(stderr,"\n");
-		fprintf(stderr,"\n");
-		individual_crossover(filho, i1, i2);
-		
-		
-		fprintf(stderr,"FILHOOOOOOOOOOOOOOOOOOOOOOOOOO\n");
-		display(filho->tree->root);
-	 */
-		
-		//fprintf(stderr, "\nRESULT: %.2f",getValue(tree->root, 2));
-		//fprintf(stderr, "\n");
-		
-		//Tree *tree = create_tree();
-		//Grow(tree, maxDepth);
-		
-		//display(tree->root);

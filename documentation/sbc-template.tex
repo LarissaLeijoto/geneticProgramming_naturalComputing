@@ -3,11 +3,35 @@
 \usepackage{sbc-template}
 
 \usepackage{graphicx,url}
-
+\usepackage{setspace}
 \usepackage[brazil]{babel}   
 \usepackage[latin1]{inputenc}  
+\usepackage[portuguese,linesnumbered,commentsnumbered]{algorithm2e}
+\usepackage{indentfirst}
+\usepackage{xcolor}
+% Definindo novas cores
+\definecolor{verde}{rgb}{0,0.5,0}
+% Configurando layout para mostrar codigos C++
+\usepackage{listings}
+\lstset{
+  language=C++,
+  basicstyle=\ttfamily\small, 
+  keywordstyle=\color{blue}, 
+  stringstyle=\color{verde}, 
+  commentstyle=\color{red}, 
+  extendedchars=true, 
+  showspaces=false, 
+  showstringspaces=false, 
+  numbers=left,
+  numberstyle=\tiny,
+  breaklines=true, 
+  backgroundcolor=\color{green!10},
+  breakautoindent=true, 
+  captionpos=b,
+  xleftmargin=0pt,
+}
+\pagestyle{empty}
 
-     
 \sloppy
 
 \title{Documentação: Programação genética para o problema de regressão simbólica}
@@ -27,9 +51,244 @@
 
 \maketitle
 
+
+     
+\begin{resumo} 
+O problema de regressão simbólica, consiste na manipulação de expressões matemáticas com o objetivo de encontrar a melhor função que descreve um conjunto de pontos. Esta documentação tem a finalidade de apresentar, discorrer e analisar a resolução do problema de regressão simbólica por meio de uma algoritmo de programação genética. Mostraremos como o problema foi modelado, a implementação, as instruções para a execução e análise das saídas geradas pelo algoritmo.
+\end{resumo}
+
 % Descrição do Problema
 \section{Introdução}
+A programação genética é uma ramificação dentro da computação evolutiva, na qual é baseada na teoria da evolução de Darwin. Ela é uma meta-heurística que realiza um processo de busca e otimização inspirada em recombinação genética. Essa busca parte de uma população inicial, no qual cada indivíduo é associado a uma solução em potencial dentro do conjunto de soluções. Cada indivíduo possui um valor de \textit{fitness} que determina quanto ele está adaptado ao ambiente.
 
+\section{Modelagem e solução proposta}
+
+Nesta seção será discutida a modelagem dos indivíduos, bem como a sua avaliação. Apresentaremos também como os operadores de cruzamentos mutação foram implementados e as dificuldades enfrentadas durante sua implementação.
+
+\subsection{Considerações iniciais}
+O algoritmo implementado neste trabalho segue o fluxo básico, de um algoritmo evolucionário, sendo assim se inicia em um processo de seleção, no qual se baseia na \emph{fitness}). Os indivíduos escolhidos para permanecerem na população são então recombinados através dos operadores genéticos, cruzamentos e mutação. A partir daí, o processo se repete, esperando-se obter um melhor valor de \emph{fitness} a cada população gerada. O pseudo código \ref{alg:algoritmo1} ilustra o fluxo principal do algoritmo implementado. 
+
+\newpage
+\begin{algorithm}[h]
+\SetAlgoLined
+\Entrada{Conjunto de pontos}
+\Saida{Melhor indivíduo }
+
+Inicializar população aleatória; \\
+\Repita{(Alcançar critério de convergência)}{
+avaliar os indivíduos da população\;
+executar seleção\;
+executar cruzamento\;
+executar mutação\;
+}
+\caption{Esboço do algoritmo implementado}
+\label{alg:algoritmo1}
+\end{algorithm}
+\setlength{\parskip}{0.0cm}
+
+\subsection{Indivíduo}
+
+Para facilitar a criação de expressões matemáticas, utilizamos uma árvore. Um indivíduo é composto pela sua \textit{fitness} e a sua árvore. Essa árvore é composta de nodos, que podem ser \textbf{terminais}, \textbf{coeficientes} e \textbf{operadores}. Um exemplo de uma árvore e sua expressão em pré-ordem podem sr visto na Figura \ref{arvore}.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[scale=0.4]{graphics/treeExpression}
+\caption{Exemplo de árvore que pertence a um indivíduo}
+\label{arvore}
+\end{figure}
+
+\subsection{Fitness}
+O \textit{fitness} calculado para cada indivíduo busca encontrar o melhor ajuste tentando minimizando a subtração do resultado encontrado pela árvore com a saída original. A equação \ref{fitness} foi utilizada para a minimização do nosso objetivo. 
+
+\begin{equation}
+f(Ind) = Valor\{Ind, x\} - y
+\label{fitness}
+\end{equation}
+
+\subsubsection{Crossover e Mutação}
+As operações de cruzamento e mutação são utilizadas para a evolução dos indivíduos e manutenção da diversidade da população. Neste trabalho foi utilizado o cruzamento de um ponto, onde dois pontos são aleatoriamente escolhidos para cortar os respectivos pais e então gerar um filho com as partes que restaram de seus pais.
+Na Figura \ref{crossover} podem ver como é realizado o processo de cruzamento no algoritmo implementado.
+
+\newpage
+\begin{figure}[!htb]
+\centering
+\includegraphics[scale=0.4]{graphics/crossover.png}
+\caption{Exemplo de cruzamento}
+\label{crossover}
+\end{figure}
+
+O processo de mutação é bastante similar ao de cruzamento, entretanto não teremos pais retirados da população. De acordo com a taxa de cruzamento, são escolhidos filhos que passarão pelo processo de mutação. Esse processo consiste na geração de uma árvore aleatória e na sua junção com o filho selecionado utilizando a operação de cruzamento.  A figura \ref{mutation} ilustra o operador de mutação implementado nesse trabalho.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[scale=0.4]{graphics/mutation.png}
+\caption{Exemplo de mutação}
+\label{mutation}
+\end{figure}
+\subsubsection{O algoritmo de programação genética}
+\section{Implementação}
+O algoritmo de programação genética utilizado neste trabalho foi implementado na linguagem C++. Para obter uma melhor representação, foram utilizados \textit{structs} para a representação da árvore e do indivíduo,
+
+\subsection{Estrutura do indivíduo}
+A \textit{struct} do \textit{induvidual} representa um indivíduo, onde são armazenado um valor do tipo \textit{double} para armazenar a \textit{fitness} e uma \textit{struct} que armazena a raiz da árvore que o representa.
+
+\begin{lstlisting}
+struct Individual
+{
+	struct Tree *tree; 
+	double fitness;				    		
+};
+\end{lstlisting}
+
+Para as operações com as árvores do indivíduo, foi implementada a classe \textit{"tree"}, onde essa possui a \textit{tree} e o \textit{node} que são as representações para os nods que compõem a árvore do indivíduo. Essa classe é constituída do nodo raiz que aponta para os próximos nodos da árvore e um contador de nodo para que possamos sortear o \textit{id} de algum nodos para fazer o cruzamento.
+\begin{lstlisting}
+struct Tree
+{
+	struct ExpNode *root;
+	unsigned countNodes;			    	  	   
+};
+\end{lstlisting}
+
+A \textit{struct} \textit{ExpNode} que pertence ao arquivo \textit{"tree"} armazena o conteúdo dos nodos que formam a árvore, sendo eles: o \textit{id}, que corresponde a identificação de um nodos; o level, que representa a profundidade em que nodo se encontra; o \textit{kind}, que é o tipo do nodo da árvore. Nessa implementação ele pode assumir três tipo: \textit{VAR},\textit{NUMBER} ou \textit{OPERATOR}; os apontador \textit{ExpNode} servem para apontar o endereço dos nodos filhos; o \textit{number} é utilizado para armazenar um número caso o tipo da variável seja \textit{NUMBER}; a variável op é utilizada para armazenar o operador quando o nodo é do tipo \textit{OPERATOR};
+
+\begin{lstlisting}
+struct ExpNode 
+{                                      
+	int kind;       		
+	unsigned level;  	     
+	double number;   		
+	char op;         		 
+	struct ExpNode *left;    
+	struct ExpNode *right;    
+	unsigned id; 			 
+};    
+
+\end{lstlisting}
+\subsubsection{Métodos importantes do indivíduo}
+
+\begin{lstlisting}
+ Individual *Individual_create()
+ Individual *Individual_random(unsigned, unsigned )
+ void individual_crossover(Individual *, Individual *, Individual *)
+ void individual_crossover(Individual *, Individual *, Individual *)
+\end{lstlisting}
+
+
+
+
+\subsubsection{Métodos importantes da árvore}
+
+\begin{lstlisting}
+double getValue(ExpNode *, double);
+ExpNode *create_ExpNode(unsigned );
+Tree *create_tree();
+void Full(Tree *, unsigned);
+void Grow(Tree *, unsigned);
+ExpNode *add_child(unsigned , ExpNode *, int &);
+ \end{lstlisting} 		
+
+
+\subsection{Programaçao genética}
+\section{Arquivos, compilação e execução}
+\subsection{Arquivos}
+\subsection{Compilação}
+\subsection{Execução}
+Exemplos de chamadas de execução com parâmetros:
+\subsubsection{Entrada}
+O arquivo de entrada para o algoritmo consiste em m linhas e n colunas, onde n-1 é a quantidade de variáveis da árvore de expressão e a coluna n é a saída esperado pelo calculo da expressão gerada pelo algoritmo. A quantidade m é o número de pontos que será testado.
+\subsubsection{Saída}
+Os resultados das execuções exibem uma série de dados. Para cada geração é impresso:
+\begin{enumerate}
+\item Melhor fitness da geração;
+\item Pior fitness da geração;
+\item Fitness média da geração;
+\item Número de indivíduos melhores que os pais (gerados por crossover);
+\item Número de indivíduos piores que os pais (gerados por crossover);
+\item Número de indivíduos iguais.
+\end{enumerate}
+
+\section{Experimentos}
+
+
+
+\subsection{Metodologia}
+\subsection{Experimentos}
+\subsubsection{Experimento 1: Convergêcia da população}
+Nesse experimento foram testado diferentes tamanhos de população para o algoritmo, e nessa seção será analisado qual o impacto de cada tamanho
+
+
+\begin{table}[!htb]
+\centering
+\caption{Parâmetros dos experimento}
+\label{tab1}
+\begin{tabular}{l|l|l|l|l|l}
+ População & Nº gerações &  Torneio&  Elitismo& Crossover& Mutação\\ \hline
+ &  &  &  &  &\\
+
+\end{tabular}
+\end{table}
+
+\subsubsection{Experimento 2: Variação do tamanho da população e número de gerações}
+
+\begin{table}[!htb]
+\centering
+\caption{Parâmetros dos experimento}
+\label{tab2}
+\begin{tabular}{l|l|l|l|l|l}
+ População & Nº gerações &  Torneio&  Elitismo& Crossover& Mutação\\ \hline
+ &  &  &  &  &\\
+
+\end{tabular}
+\end{table}
+
+
+\subsubsection{Experimento 3: Variação das probabilidades}
+
+\begin{table}[!htb]
+\centering
+\caption{Parâmetros dos experimento}
+\label{tab3}
+\begin{tabular}{l|l|l|l|l|l}
+ População & Nº gerações &  Torneio&  Elitismo& Crossover& Mutação\\ \hline
+ &  &  &  &  &\\
+
+\end{tabular}
+\end{table}
+
+
+\subsubsection{Experimento 4: Torneio}
+
+\begin{table}[!htb]
+\centering
+\caption{Parâmetros dos experimento}
+\label{tab4}
+\begin{tabular}{l|l|l|l|l|l}
+ População & Nº gerações &  Torneio&  Elitismo& Crossover& Mutação\\ \hline
+ &  &  &  &  &\\
+
+\end{tabular}
+\end{table}
+
+\subsubsection{Experimento 5: Elitismo}
+\begin{table}[!htb]
+\centering
+\caption{Parâmetros dos experimento}
+\label{tab5}
+\begin{tabular}{l|l|l|l|l|l}
+ População & Nº gerações &  Torneio&  Elitismo& Crossover& Mutação\\ \hline
+ &  &  &  &  &\\
+
+\end{tabular}
+\end{table}
+\section{Resultados}
+\subsubsection{Experimento 1: Convergência da população}
+\subsubsection{Experimento 2: Tamanho da população e número de gerações}
+\subsubsection{Experimento 3: Probabilidades de Mutação e Crossover}
+\subsubsection{Experimento 4: Torneio}
+\subsubsection{Experimento 5: Elitismo}
+\subsubsection{Resultados Gerais}
+
+\section{Conclusão}
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}

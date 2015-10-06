@@ -36,7 +36,7 @@
 	
 
 	/**
-	 * @brief Sanity check for genetic_algorithm().
+	 * @brief Sanity check for genetic Programming().
 	 */
 	#define SANITY_CHECK()         \
 		assert(popsize > 0);       \
@@ -53,7 +53,7 @@
 	/**
 	 * @brief creates a Individual.
 	 * 
-	 * @return A Individual.
+	 * @return A new individual.
 	 */
 	Individual *Individual_create()
 	{
@@ -66,7 +66,7 @@
 	/**
 	 * @brief creates a random Individual.
 	 * 
-	 * @return A random Individual.
+	 * @return A random individual, creates by method FULL or GROW.
 	 */
 	Individual *Individual_random(unsigned maxdepth, unsigned method)
 	{	
@@ -84,7 +84,7 @@
 	/**
 	 * @brief Destroys a Individual.
 	 * 
-	 * @param Individual that memory will be free.
+	 * @param Individual in which memory will be freed.
 	 */
 	void individual_destroy(Individual *individual)
 	{
@@ -96,7 +96,7 @@
 	/**
 	 * @brief Make a copy of a Individual.
 	 * 
-	 * @param Individual that will be copy
+	 * @param Individual that will be copied.
 	 */
 	Individual *copy_individual(Individual *individual)
 	{
@@ -112,6 +112,9 @@
 
 	/**
 	 * @brief Replaces old population for new population applying elitism and random kill.
+	 * 
+	 * @param Old population.
+	 * @param New population.
 	 */
 	void replacement(vector<Individual*> &population, vector<Individual*> &newpopulation)
 	{
@@ -171,6 +174,9 @@
 
 	/**
 	 * @brief Selects organisms for mating using tournament.
+	 * 
+	 * @param parents that will be generated.
+	 * @param population that will be used to do the selection.
 	 */
 	 void selection(vector<Individual *> &parents, vector< Individual *> &pop, unsigned tournament)
 	{
@@ -203,6 +209,9 @@
 
 	/**
 	 * @brief creates a new population.
+	 * 
+	 * @param new population that will be generated from the parents.
+	 * @param parents that will generate children.
 	 */
 	 void reproduction(genome *g, vector<Individual*> &newpop, vector<Individual *> &parents)
 	{
@@ -247,8 +256,9 @@
 	/**
 	 * @brief Crossovers two Individuals.
 	 * 
-	 * @param Individual1 First Individual.
-	 * @param Individual2 Second Individual.
+	 * @param Child that will be generated from  mom and dad.
+	 * @param Mom used to mate with dad.
+	 * @param Dad used to mate with mom.
 	 */
 	void individual_crossover(Individual *offspring, Individual *mom, Individual *dad)
 	{	
@@ -322,6 +332,8 @@
 	}	
 	/**
 	 * @brief Evaluates the fitness of a Individual.
+	 * 
+	 * @param Population in which will calculate the fitness of each individual.
 	 */
 	void individual_evaluate(vector<Individual*> &population)
 	{  
@@ -350,6 +362,9 @@
 
 	/**
 	 * @brief genetic programming for symbolic regression.
+	 * 
+	 * @param Population size
+	 * @param Number of generation to evolve the popualtion.
 	*/
 	void symbolicRegression(unsigned popsize, unsigned ngen)
 	{		
@@ -357,7 +372,10 @@
 	} 
 
 	/**
-	 * @brief
+	 * @brief Calculate statistics needed to assess the algorithm.
+	 * 
+	 * @param Population in which will be calculated the statistics.
+	 * @param File that will be used to store information.
 	 */
 	void statistics(vector< Individual*> &population, FILE *logStatistic)
 	{	
@@ -372,10 +390,13 @@
 		fprintf(logStatistic,"%.2f;",population[0]->fitness); /* Máximo */
 		fprintf(logStatistic,"%.2f;",population[popsize-1]->fitness); /* Minimo*/
 		
+		for(unsigned w = 0; w < population.size(); w++)
+			fprintf(stderr,"%.2f\n",population[w]->fitness);
+		
 		for(i = 0; i < population.size(); i++)
 			sum += population[i]->fitness;
 			
-		mean = sum/popsize;
+		mean = sum/population.size();
 		
 		fprintf(logStatistic,"%2.f;",mean);
 		
@@ -384,7 +405,7 @@
 		for(i = 0; i < population.size(); i++)
 			sum += pow((population[i]->fitness - mean),2);
 			
-		stddev = sum/popsize;		
+		stddev = sum/population.size();		
 		
 		fprintf(logStatistic,"%2.f",stddev);
 		fprintf(logStatistic,"\n");
@@ -395,7 +416,11 @@
 	 *                              genetic Programming                           *
 	 *============================================================================*/
 	 /**
-	 * @brief
+	 * @brief Genetic Programming 
+	 * 
+	 * @param Genome used to define the algorithm params.
+	 * @param Population size.
+	 * @param Number of genetations.
 	 */
 	void geneticProgramming(genome *g, unsigned popsize, unsigned ngen)
 	{
@@ -408,6 +433,7 @@
 		
 		FILE *logStatistic;
 		FILE *logBests;
+		FILE *logtime;
 
 		vector<Individual*> population;					/* Current population.    						 */
 		vector<Individual*> newpopulation;       		/* New population.								 */
@@ -417,38 +443,44 @@
 		double best;									/* Best solution found.  						 */
 		double mean = 0;								/* Mean of population's fitness.     			 */
 		double stddev = 0;								/* Standart desviation of population's fitness.  */
-		
+		double sum = 0; 								/* Sum of fitness of each individual. 			 */
+
 		double time_in_seconds_evaluation = 0;
 		double time_in_seconds_selection = 0;
 		double time_in_seconds_reproduction = 0;
 		double time_in_seconds_replacement =0;
 		
-		logStatistic = fopen("statistic.txt", "w");
+		logStatistic = fopen("Statistic.txt", "w");
 		logBests = fopen("bests.txt","w");
+		logtime = fopen("time.txt","w");
 		
 		/* Header of file*/
-		fprintf(logStatistic,"Min;Max;Mean;Stdv\n"); 
+		fprintf(logStatistic,"Bests;\n"); 
 		
 		SANITY_CHECK();
 
-		//for(unsigned stat = 0; stat < 1;stat++)
-		//{
+		for(unsigned stat = 0; stat < 30;stat++)
+		{
 			/* Build initial population. */
 			for(unsigned i = 0; i < popsize;i++ )
 				population.push_back(Individual_random(maxDepth,1));
+				
+			for(unsigned i = population.size(); i < popsize;i++ )
+				population.push_back(Individual_random(maxDepth,2));
+				
+			/**Evaluate the new population*/
+				clock_t start_time_evaluation = clock();
+				individual_evaluate(population);
+				time_in_seconds_evaluation += (clock() - start_time_evaluation) / (double)CLOCKS_PER_SEC;	
+			
 						
 			for(unsigned i = 0; i < popsize; i++)
 			{
-				fprintf(stderr, "generation: %d\n", i);
-
-				/**Evaluate the new population*/
-				clock_t start_time_evaluation = clock();
-				individual_evaluate(population);
-				time_in_seconds_evaluation += (clock() - start_time_evaluation) / (double)CLOCKS_PER_SEC;
-
-				/* Print population statistics.*/
-				statistics(population, logStatistic);
+				//fprintf(stderr, "generation: %d\n", i);
 				
+				/* Print population statistics.*/
+				//statistics(population, logStatistic);
+		
 				/* Select individuals for reproduction.*/
 				clock_t start_time_selection = clock();
 				selection(parents, population, 2);					
@@ -462,24 +494,61 @@
 				/* Replaces the old population by the new.*/
 				clock_t start_time_replacement = clock();
 				replacement(population, newpopulation);
-				time_in_seconds_replacement += (clock() - start_time_replacement) / (double)CLOCKS_PER_SEC;
+				time_in_seconds_replacement += (clock() - start_time_replacement) / (double)CLOCKS_PER_SEC;	
+				
+				/**Evaluate the new population*/
+				clock_t start_time_evaluation = clock();
+				individual_evaluate(population);
+				time_in_seconds_evaluation += (clock() - start_time_evaluation) / (double)CLOCKS_PER_SEC;
+				
 			}	
 			
+			/* Store the best individual of a execution. */
+			fprintf(stderr,"#Execution Finish: %d\n",stat);
+			std::sort(population.begin(),population.end(),ordenation);
+			bestExecutions.push_back(copy_individual(population[0]));
+				
 			/* House Kepping.*/
 			for(unsigned w = 0; w < population.size(); w++)
 				individual_destroy(population[w]);
 			population.resize(0);
 
 		
-		//}
+		}
 		
 		#if(time_ga>0)
-		fprintf(logBests, "Evaluation: %.2f\n",time_in_seconds_evaluation);
-		fprintf(logBests, "Selection: %.2f\n",time_in_seconds_selection);
-		fprintf(logBests, "Reproduction: %.2f\n",time_in_seconds_reproduction);
-		fprintf(logBests, "Replacement: %.2f\n",time_in_seconds_replacement);
+		fprintf(logtime, "Evaluation: %.2f\n",time_in_seconds_evaluation/30);
+		fprintf(logtime, "Selection: %.2f\n",time_in_seconds_selection/30);
+		fprintf(logtime, "Reproduction: %.2f\n",time_in_seconds_reproduction/30);
+		fprintf(logtime, "Replacement: %.2f\n",time_in_seconds_replacement/30);
 		#endif
+				
+		for(i = 0; i < bestExecutions.size(); i++)
+		fprintf(logStatistic,"%.2f\n",bestExecutions[i]->fitness);
 		
+		for(i = 0; i < bestExecutions.size(); i++)
+			sum += bestExecutions[i]->fitness;
+		
+			
+		mean = sum/bestExecutions.size();
+		
+		fprintf(logBests,"Mean: %f\n",mean);
+			
+		sum = 0;
+		
+		for(i = 0; i < bestExecutions.size(); i++)
+			sum += pow((bestExecutions[i]->fitness - mean),2);
+			
+		stddev = sum/bestExecutions.size();		
+		fprintf(logBests,"Standard Desviation: %f\n",stddev);
+
+		/* House Kepping.*/
+		for(i = 0 ; i < bestExecutions.size(); i++)
+				individual_destroy(bestExecutions[i]);
+			bestExecutions.clear();
+			
 		fclose(logStatistic);
 		fclose(logBests);
+		
+		
 	}

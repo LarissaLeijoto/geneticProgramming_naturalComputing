@@ -13,7 +13,9 @@
 	#include <limits.h>
 	#include <time.h>
 	#include <vector>
-	#include <fstream>      // std::ifstream
+	#include <fstream>  
+	#include <sstream>
+	#include <iostream> 
 
 	#include "database.h"
 	#include "util.h"
@@ -62,7 +64,6 @@
 				}
 			}
 			
-			database.ncolunms = database.ncolunms - 1;
 			fclose(wfile);
 			
 		/* Invalid number of points. */
@@ -86,19 +87,18 @@
 		/* Sanity check. */
 		assert(filename != NULL);
 		
-		char *line; 			/* Working line.      */
+		//char *line; 			/* Working line.      */
 		FILE *wfile;			/* Working file.      */
 		unsigned i = 0, j = 0;  /*Loop index.		  */
 		ifstream inFile;
-
+	
 		
 		/* Allocate database. */
 		database.points = (double **)smalloc(database.npoints*sizeof(double *));
 		for (i = 0; i < database.npoints; i++)
 			database.points[i] = (double *)scalloc(database.ncolunms,sizeof(double));
-	
 
-		/* Open working file. */
+		/* Open working file.*/
 		inFile.open(filename, ios::in);
 			if (!inFile)
 				error ("cannot open input file");
@@ -106,16 +106,16 @@
 		i = 0;
 		
 		for(i =0 ; i< database.npoints; i++)
-		{
-			for(j = 0; j < database.ncolunms; j++)
 			{
-				inFile >> database.points[i][j];
+				for(j = 0; j < database.ncolunms; j++)
+				{
+					inFile >> database.points[i][j];
+				}
 			}
-		}
 		
 		inFile.close();
 
-		
+		 
 	}
 
 	/**

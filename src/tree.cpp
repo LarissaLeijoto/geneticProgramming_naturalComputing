@@ -12,7 +12,10 @@
 	using namespace std;
 	
 	/**
-	 * @brief
+	 * @brief Creates an initialized node.
+	 * @param level that the node belongs.
+	 * 
+	 * @return A new node initialized.
 	 */
 	ExpNode *create_ExpNode(unsigned l)
 	{
@@ -29,7 +32,9 @@
 	}
 	
 	/**
-	 * @brief
+	 * @brief Creates an initialized tree.
+	 * 
+	 * @return A new tree initialized.
 	 */
 	Tree *create_tree()
 	{
@@ -41,7 +46,9 @@
 	}
 	
 	/**
-	 * @brief
+	 * @brief Copys a node to another.
+	 * 
+	 * @param Node that will be copied.
 	 */
 	void ExpNode::copy_node(ExpNode *node)
 	{
@@ -52,7 +59,9 @@
 	}
 	
 	/**
-	 * @brief
+	 * @brief Frees memory allocated to a nod.
+	 * 
+	 * @param Node that will be deallocated.
 	 */
 	void tree_destroy(ExpNode *node)
 	{
