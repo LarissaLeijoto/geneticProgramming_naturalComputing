@@ -29,18 +29,18 @@
 	/* A node in an expression tree.*/
 	struct ExpNode 
 	{                                      
-            int kind;       		 /* Which type of node is this? (Value is NUMBER or OPERATOR.).*/
-            unsigned level;  	     /* Node's Depth. */
-            double number;   		 /* The value in a node of type NUMBER. */
-            char op;         		 /* The operator in a node of type OPERATOR. */
-            struct ExpNode *left;    /*Pointer to subtrees. */
-            struct ExpNode *right;   /*Pointer to subtrees. */   
-            unsigned id; 			 /* Node's id to facilitate to choose a node. */
-            
+            int kind;       		 	 /* Which type of node is this? (Value is NUMBER or OPERATOR.).*/
+            unsigned level;  	    	 /* Node's Depth. 											   */
+            double number;   			 /* The value in a node of type NUMBER.						   */
+            char op;         			 /* The operator in a node of type OPERATOR. 				   */
+            struct ExpNode *left;   	 /*Pointer to subtrees.										   */
+            struct ExpNode *right;   	 /*Pointer to subtrees. 									   */   
+            unsigned id; 			 	 /* Node's id to facilitate to choose a node. 				   */
+            int  variableId;	 		 /* Indicates what variable of database.     				   */
 		/*
 		 * 
 		 */ 
-		void var_leaf();
+		void var_leaf(std::vector<int>&typeVariable);
 		/*
 		 * 
 		 */
@@ -60,7 +60,7 @@
     /**
      * 
      */
-    double getValue(ExpNode *node, double x);
+    double getValue(ExpNode *node, const std::vector<double> &x);
     
     /**
      * 
@@ -85,7 +85,7 @@
 	/**
      * 
      */
-	 ExpNode *add_child(unsigned maxDepth, ExpNode *node, int &countVariables);
+	 ExpNode *add_child(unsigned maxDepth, ExpNode *node, std::vector<int>&typeVariable);
 	
 	/**
      * 

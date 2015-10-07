@@ -43,7 +43,7 @@
 	 */
 	static void usage(void)
 	{
-		printf("Usage: genetic algorithm <popsize> <ngen> <depth> <file>");
+		printf("Usage: genetic Programming <popsize> <ngen> <depth> <file>");
 		exit(EXIT_SUCCESS);
 	}
 

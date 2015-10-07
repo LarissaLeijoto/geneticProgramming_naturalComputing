@@ -1,7 +1,7 @@
-\documentclass[12pt]{article}
-
+documentclass[12pt]{article}
+\usepackage{courier}
 \usepackage{sbc-template}
-
+\usepackage[T1]{fontenc}
 \usepackage{graphicx,url}
 \usepackage{setspace}
 \usepackage[brazil]{babel}   
@@ -113,7 +113,7 @@ Na Figura \ref{crossover} podem ver como é realizado o processo de cruzamento no
 \begin{figure}[!htb]
 \centering
 \includegraphics[scale=0.4]{graphics/crossover.png}
-\caption{Exemplo de cruzamento}
+\caption{Exemplo de cruzamento utilizado por \cite{Poli2008}}
 \label{crossover}
 \end{figure}
 
@@ -122,7 +122,7 @@ O processo de mutação é bastante similar ao de cruzamento, entretanto não teremo
 \begin{figure}[!htb]
 \centering
 \includegraphics[scale=0.4]{graphics/mutation.png}
-\caption{Exemplo de mutação}
+\caption{Exemplo de mutação utilizado por \cite{Poli2008}}
 \label{mutation}
 \end{figure}
 \subsubsection{O algoritmo de programação genética}
@@ -170,10 +170,15 @@ struct ExpNode
  Individual *Individual_create()
  Individual *Individual_random(unsigned, unsigned )
  void individual_crossover(Individual *, Individual *, Individual *)
- void individual_crossover(Individual *, Individual *, Individual *)
+ void individual_mutation(Individual *)
 \end{lstlisting}
 
-
+\begin{enumerate}
+\item Individual\_create: Cria um indivíduo inicializado com valores pré definidos.
+\item Individual\_random: Cria um indivíduo aleatório pelo método \textit{Full} ou \textit{Grow} de acordo com uma probabilidade de 0.5.
+\item individual\_crossover: Cruza dois indivíduos selecionados aleatoriamente da população.
+\item individual\_mutation: Realiza uma mutação de um indivíduo cruzando ele com outro indivíduo gerado aleatoriamente.
+\end{enumerate}
 
 
 \subsubsection{Métodos importantes da árvore}
@@ -187,13 +192,46 @@ void Grow(Tree *, unsigned);
 ExpNode *add_child(unsigned , ExpNode *, int &);
  \end{lstlisting} 		
 
+\begin{enumerate}
+\item getValue: Obtém o valor da expressão da árvore de um indivíduo.
+\item create\_ExpNode: Cria um nodo para ser alocado em uma determinada árvore.
+\item create\_tree: Cria uma árvore para ser alocada a um indivíduo.
+\item Full: Cria uma árvore aleatória completa.
+\item Grow: Cria uma árvore que cresce aleatoriamente até que seja atingido uma certa profundidade.
+\item add\_child: Adiciona um novo nodo a uma árvore.
+\end{enumerate}
 
 \subsection{Programaçao genética}
 \section{Arquivos, compilação e execução}
 \subsection{Arquivos}
+\begin{itemize}
+\item \textbf{main.cpp:} Arquivo principal que realiza a chamadas dos principais métodos.
+\item \textbf{util.cpp:} Métodos úteis que foram utilizados na implementação do algoritmo.
+\item \textbf{tree.cpp:} Arquivo que contém a implementação e os métodos das \textit{structs} \textit{ExpNodes} e \textit{tree}.
+\item \textbf{database.cpp:} Arquivo utilizado para a leitura da base de dados.
+\item \textbf{geneticProgramming.cpp:} Arquivo onde se encontra implementação do algoritmo de programação genética, bem como os métodos utilizados por ele.
+\item \textbf{util.h:} Header da classe util
+\item \textbf{tree.h:} Header da classe tree
+\item \textbf{database.h:} Header da database
+\item \textbf{geneticProgramming.h:} Header do arquivo de programação genética.
+\end{itemize}
+
 \subsection{Compilação}
+A compilação do programa pode ser feito por meio de um Makefile contido na pasta raiz do trabalho. Outro Makefile que pertence a pasta src é executado, assim que o primeiro Make é acionado. Assim, não é necessário executá-lo uma vez que, sua execução é a partir do que está contido na pasta raiz.
+\newline
+\begin{enumerate}
+\item[-]$tp1-naturalComputing/make$
+\end{enumerate}
+
+
+
 \subsection{Execução}
-Exemplos de chamadas de execução com parâmetros:
+Para que o programa seja executado é necessário o seguinte comando:
+\newline
+\begin{enumerate}
+\item[-] $bin/geneticProgramming [npopulation, ngeneration, depth, input/File]$
+\end{enumerate}
+
 \subsubsection{Entrada}
 O arquivo de entrada para o algoritmo consiste em m linhas e n colunas, onde n-1 é a quantidade de variáveis da árvore de expressão e a coluna n é a saída esperado pelo calculo da expressão gerada pelo algoritmo. A quantidade m é o número de pontos que será testado.
 \subsubsection{Saída}
@@ -208,13 +246,15 @@ Os resultados das execuções exibem uma série de dados. Para cada geração é impre
 \end{enumerate}
 
 \section{Experimentos}
-
+Os experimentos foram executados em um computador com processador Intel Core I7 com 3,5 GHz, memória DDR3 de 12 GB e sistema operacional Ubuntu versão 14.04.3 LTS.
 
 
 \subsection{Metodologia}
-\subsection{Experimentos}
+% FAZER um script para a execução do algoritmo
 \subsubsection{Experimento 1: Convergêcia da população}
-Nesse experimento foram testado diferentes tamanhos de população para o algoritmo, e nessa seção será analisado qual o impacto de cada tamanho
+Nesse experimento foram testados diferentes variações de parâmetros para o algoritmo de programação genética, e nessa seção será analisado qual o impacto dessas variações na procura de uma solução. O conjunto base escolhido, foi o \textit{ellipse\_noise} após ser feito uma sequência de testes com parâmetro \textit{default}, nos quais esse conjunto obteve o pior resultado. Portando, tentaremos melhorar o resultado com as variações desses parâmetros.
+
+%COLOCAR GRÁFICO DE BARRA PARA MOSTRAR QUAL È MELHOR
 
 
 \begin{table}[!htb]
@@ -228,7 +268,7 @@ Nesse experimento foram testado diferentes tamanhos de população para o algoritm
 \end{tabular}
 \end{table}
 
-\subsubsection{Experimento 2: Variação do tamanho da população e número de gerações}
+\subsubsection{Experimento 2: Variação do número de gerações}
 
 \begin{table}[!htb]
 \centering

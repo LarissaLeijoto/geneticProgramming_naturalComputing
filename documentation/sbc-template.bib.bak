@@ -140,15 +140,6 @@
   Url                      = {http://bioinformatics.oxfordjournals.org/content/29/17/2112.abstract}
 }
 
-@Book{Poli2008,
-  Title                    = {A Field Guide to Genetic Programming},
-  Author                   = {Poli, Riccardo and Langdon, William B. and McPhee, Nicholas Freitag},
-  Publisher                = {Lulu Enterprises, UK Ltd},
-  Year                     = {2008},
-
-  ISBN                     = {1409200736, 9781409200734}
-}
-
 @Article{Shealy2012,
   Title                    = {Multiple structure alignment with msTALI},
   Author                   = {Shealy, Paul and Valafar, Homayoun},
@@ -214,4 +205,12 @@
   Eprint                   = {http://bioinformatics.oxfordjournals.org/content/21/7/1267.full.pdf+html},
   Url                      = {http://bioinformatics.oxfordjournals.org/content/21/7/1267.abstract}
 }
+
+@Book{Poli:2008:FGG:1796422,
+ author = {Poli, Riccardo and Langdon, William B. and McPhee, Nicholas Freitag},
+ title = {A Field Guide to Genetic Programming},
+ year = {2008},
+ isbn = {1409200736, 9781409200734},
+ publisher = {Lulu Enterprises, UK Ltd},
+} 
 

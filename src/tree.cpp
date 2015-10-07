@@ -7,7 +7,8 @@
 	#include "tree.h"
 	#include "util.h"
 	#include "database.h"
-
+	#include <cassert>
+	#include <iostream>
 	
 	using namespace std;
 	
@@ -27,6 +28,7 @@
 		node->id = -1;
 		node->left = NULL;
 		node->right = NULL;
+		node->variableId =  999999;
 		
 		return node;
 	}
@@ -55,7 +57,8 @@
 		op = node->op;
 		id = node->id;
 		kind = node->kind;
-		number = node->number;							
+		number = node->number;	
+		variableId = node->variableId;						
 	}
 	
 	/**
@@ -77,9 +80,10 @@
 	/**
 	 * @brief
 	 */
-	 ExpNode *add_child(unsigned maxDepth,ExpNode *root, int &countVariables)
+	 ExpNode *add_child(unsigned maxDepth,ExpNode *root, vector<int>&typeVariable)
 	{
 		ExpNode *child = NULL;
+		
 		
 		if (root->level + 1 > maxDepth) 
 		{
@@ -92,25 +96,28 @@
 			
 			if (child->level == maxDepth) 
 			{
-				/* Choose at least one variable*/
-				if(countVariables > 0)
+				/* Choose at least one variable*/		
+				if(not typeVariable.empty())
 				{
 					child->kind = VAR;
 					child->number = rand()/ (double)RAND_MAX;
-					countVariables--;
+					child->variableId = typeVariable.back();
+					typeVariable.pop_back();
 				}
-				else if(rand()%2 == 0 and countVariables == 0)
+				else if(rand()%2 == 0)
 				{
 					child->kind = VAR;
+					child->variableId = rand()%(database.ncolunms-1);
 					child->number = rand()/ (double)RAND_MAX;
 				}else
 				{			
 					child->kind = NUMBER;
+					child->number = rand()/ (double)RAND_MAX;
 				}
 			}
 			else 
 			{
-				// choose between op
+				/* choose between op. */
 				child->kind = OPERATOR;
 				child->op = Operators[rand()%4];			
 			}
@@ -129,16 +136,16 @@
 	/**
 	 * @brief  Return the value of the expression represented by the tree to which node refers.  Node must be non-NULL.
 	 */
-	double getValue(ExpNode *node, double x)
-	{		
+	double getValue(ExpNode *node, const std::vector<double> &x)
+	{
              if (node->left == NULL and node->right == NULL)
              {
 				 double terminal = node->number;
 				/* The value of a NUMBER node is the number it holds.*/
 				            
 				if(node->kind == VAR)
-					terminal = x;
-		
+					terminal = x[node->variableId];
+				
                 return terminal;
              }
              else 
@@ -183,8 +190,12 @@
 	void Full(Tree *tree, unsigned maxDepth)
 	{
 		ExpNode *child; 
-		int countVariables = database.ncolunms -1;
+		vector<int>typeVariable;
 		
+		for(unsigned i = 0; i < database.ncolunms-1;i++)
+			typeVariable.push_back(i);
+	
+			
 		tree->root = create_ExpNode(0);
 		tree->root->kind = OPERATOR;
 		tree->root->op = Operators[rand()%4];
@@ -200,7 +211,7 @@
 			unsigned pos = rand() % available.size();
 			ExpNode *cur = available[pos];
 
-			child = add_child(maxDepth, cur, countVariables);
+			child = add_child(maxDepth, cur, typeVariable);
 			
 			if (child == NULL) 
 			{
@@ -222,15 +233,17 @@
 	void Grow( Tree *tree, unsigned maxDepth)
 	{
 		unsigned depth = 0;
-		int countVariables = database.ncolunms -1;
 		ExpNode *child; 
-
+		vector<int>typeVariable;
+		
+		for(unsigned i = 0; i < database.ncolunms-1;i++)
+			typeVariable.push_back(i);
 
 		tree->root = create_ExpNode(0);
 		tree->root->kind = OPERATOR;
 		tree->root->op = Operators[rand()% 4];
 		
-		vector< ExpNode*> available;
+		vector<ExpNode*> available;
 
 		available.push_back(tree->root);
 		
@@ -239,7 +252,7 @@
 			unsigned pos = rand() % available.size();
 			ExpNode *cur = available[pos];
 
-			child = add_child(maxDepth, cur, countVariables);
+			child = add_child(maxDepth, cur, typeVariable);
 			
 			if (child == NULL) 
 				available.erase(available.begin() + pos);
@@ -254,27 +267,35 @@
 		}
 		
 		for (ExpNode *node : available) 
-			node->var_leaf();
+			node->var_leaf(typeVariable);
 	}
 	
 	/**
 	 * @brief To count the number of leaf nodes
 	 */ 
-	void ExpNode::var_leaf()
-	{
-		ExpNode *node;
-		
-		if (left == NULL && right == NULL)
+	void ExpNode::var_leaf(std::vector<int>&typeVariable)
+	{	
+		if (left == NULL and right == NULL)
 		{
-			if(rand()%2 == 0)
-			{
-				kind = NUMBER;
-			}
-			else
+			/* Choose at least one variable*/		
+			if(not typeVariable.empty())
 			{
 				kind = VAR;
-				number = rand()/(double)RAND_MAX ;
+				number = rand()/ (double)RAND_MAX;
+				variableId = typeVariable.back();
+				typeVariable.pop_back();
 			}
+			else if(rand()%2 == 0)
+			{
+				kind = VAR;
+				variableId = rand()%(database.ncolunms-1);
+				number = rand()/ (double)RAND_MAX;
+			}else
+			{			
+				kind = NUMBER;
+				number = rand()/ (double)RAND_MAX;
+			}
+			
 			
 		}
 		else if(left == NULL )
@@ -322,17 +343,16 @@
 
 		if(list->kind == OPERATOR)
 		{
-			fprintf(stderr,"%c ", list->op);
+			fprintf(stderr,"%c\n", list->op);
 		}
 		else if(list->kind == VAR)
 		{
-			fprintf(stderr," X");
-
-			//fprintf(stderr,"%d  %.2f\n ",list->id,list->number);
+			//fprintf(stderr," X");
+			fprintf(stderr,"(%d)   X%d\n",list->id,list->variableId);
 		}
 		else
 		{
-			fprintf(stderr,"%.2f ",list->number);		
+			fprintf(stderr,"%.2f\n",list->number);		
 		} 	
 		display(list->left);	
 		display(list->right);

@@ -1,0 +1,2 @@
+Mean: 39.757272
+Standard Desviation: 2.424477

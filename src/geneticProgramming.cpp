@@ -337,13 +337,20 @@
 	 */
 	void individual_evaluate(vector<Individual*> &population)
 	{  
+		std::vector<double> variables;
+						
 		for(unsigned i = 0; i < population.size(); i++)
 		{
 			double residual = 0;  
 			
 			for(unsigned j = 0; j < database.npoints; j++)
-				residual += abs((getValue(population[i]->tree->root, database.points[j][0])- database.points[j][1]));  		
-	
+			{
+				for(int w = 0;w < database.ncolunms-1;w++)
+					variables.push_back(database.points[j][w]);
+			
+				residual += abs((getValue(population[i]->tree->root, variables)- database.points[j][database.ncolunms-1]));  		
+				variables.resize(0);
+			}
 			population[i]->fitness = residual;
 		}
 	}
@@ -462,20 +469,20 @@
 		for(unsigned stat = 0; stat < 30;stat++)
 		{
 			/* Build initial population. */
-			for(unsigned i = 0; i < popsize;i++ )
+			for(unsigned i = 0; i < popsize/2;i++ )
 				population.push_back(Individual_random(maxDepth,1));
 				
 			for(unsigned i = population.size(); i < popsize;i++ )
 				population.push_back(Individual_random(maxDepth,2));
 				
 			/**Evaluate the new population*/
-				clock_t start_time_evaluation = clock();
-				individual_evaluate(population);
-				time_in_seconds_evaluation += (clock() - start_time_evaluation) / (double)CLOCKS_PER_SEC;	
-			
-						
-			for(unsigned i = 0; i < popsize; i++)
+			clock_t start_time_evaluation = clock();
+			individual_evaluate(population);
+			time_in_seconds_evaluation += (clock() - start_time_evaluation) / (double)CLOCKS_PER_SEC;
+
+			for(unsigned i = 0; i < ngen; i++)
 			{
+				
 				//fprintf(stderr, "generation: %d\n", i);
 				
 				/* Print population statistics.*/
@@ -500,7 +507,7 @@
 				clock_t start_time_evaluation = clock();
 				individual_evaluate(population);
 				time_in_seconds_evaluation += (clock() - start_time_evaluation) / (double)CLOCKS_PER_SEC;
-				
+
 			}	
 			
 			/* Store the best individual of a execution. */
@@ -549,6 +556,6 @@
 			
 		fclose(logStatistic);
 		fclose(logBests);
-		
+		fclose(logtime);
 		
 	}

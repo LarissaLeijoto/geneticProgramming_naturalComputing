@@ -1,0 +1,4 @@
+Evaluation: 0.35
+Selection: 0.15
+Reproduction: 0.08
+Replacement: 0.14

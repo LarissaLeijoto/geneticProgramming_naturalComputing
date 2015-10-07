@@ -63,12 +63,12 @@
 					countColumns = false;
 				}
 			}
-			
+			database.ncolunms++;
 			fclose(wfile);
 			
 		/* Invalid number of points. */
 		if (database.npoints == 0)
-			error("invalid number of amino acids");
+			error("invalid number of points");
 	}
 
 	/**
@@ -106,12 +106,12 @@
 		i = 0;
 		
 		for(i =0 ; i< database.npoints; i++)
+		{
+			for(j = 0; j < database.ncolunms; j++)
 			{
-				for(j = 0; j < database.ncolunms; j++)
-				{
-					inFile >> database.points[i][j];
-				}
+				inFile >> database.points[i][j];
 			}
+		}
 		
 		inFile.close();
 
